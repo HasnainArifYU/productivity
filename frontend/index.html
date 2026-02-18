@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Productivity App</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <header>
+      <h1>Productivity Hub</h1>
+      <div id="user-info">
+        <span id="welcome-message">Welcome, Guest</span>
+        <button id="logout-btn" class="hidden">Logout</button>
+      </div>
+    </header>
+
+    <div class="auth-container" id="auth-container">
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login">Login</button>
+        <button class="auth-tab" data-tab="register">Register</button>
+      </div>
+      
+      <div class="auth-form active" id="login-form">
+        <h2>Login</h2>
+        <form id="login-form-element">
+          <div class="form-group">
+            <label for="login-username">Username</label>
+            <input type="text" id="login-username" required>
+          </div>
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" required>
+          </div>
+          <button type="submit" class="btn">Login</button>
+        </form>
+      </div>
+      
+      <div class="auth-form" id="register-form">
+        <h2>Register</h2>
+        <form id="register-form-element">
+          <div class="form-group">
+            <label for="register-username">Username</label>
+            <input type="text" id="register-username" required>
+          </div>
+          <div class="form-group">
+            <label for="register-email">Email</label>
+            <input type="email" id="register-email" required>
+          </div>
+          <div class="form-group">
+            <label for="register-password">Password</label>
+            <input type="password" id="register-password" required>
+          </div>
+          <div class="form-group">
+            <label for="register-first-name">First Name</label>
+            <input type="text" id="register-first-name">
+          </div>
+          <div class="form-group">
+            <label for="register-last-name">Last Name</label>
+            <input type="text" id="register-last-name">
+          </div>
+          <button type="submit" class="btn">Register</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="content-container hidden" id="content-container">
+      <aside class="sidebar">
+        <div class="sidebar-section">
+          <h3>Notes</h3>
+          <button id="new-note-btn" class="btn">New Note</button>
+          <ul id="notes-list" class="item-list"></ul>
+        </div>
+        
+        <div class="sidebar-section">
+          <h3>To-Do Lists</h3>
+          <button id="new-todolist-btn" class="btn">New List</button>
+          <ul id="todolists-list" class="item-list"></ul>
+        </div>
+      </aside>
+      
+      <main class="main-content">
+        <div id="note-view" class="view-container hidden">
+          <div class="view-header">
+            <h2>Notes</h2>
+            <div class="note-actions">
+              <button id="save-note-btn" class="btn">Save</button>
+              <button id="delete-note-btn" class="btn danger">Delete</button>
+            </div>
+          </div>
+          <div class="note-editor">
+            <input type="hidden" id="note-id">
+            <input type="text" id="note-title" placeholder="Note Title">
+            <textarea id="note-content" placeholder="Note Content"></textarea>
+            <div class="tags-container">
+              <label>Tags (comma separated):</label>
+              <input type="text" id="note-tags" placeholder="e.g. work, important">
+            </div>
+          </div>
+        </div>
+        
+        <div id="todolist-view" class="view-container hidden">
+          <div class="view-header">
+            <h2>To-Do List</h2>
+            <div class="todolist-actions">
+              <button id="save-todolist-btn" class="btn">Save</button>
+              <button id="delete-todolist-btn" class="btn danger">Delete</button>
+            </div>
+          </div>
+          <input type="hidden" id="todolist-id">
+          <input type="text" id="todolist-name" placeholder="List Name">
+          <input type="text" id="todolist-description" placeholder="List Description">
+          
+          <div class="tasks-container">
+            <h3>Tasks</h3>
+            <div class="add-task">
+              <input type="text" id="new-task" placeholder="Add a new task">
+              <button id="add-task-btn" class="btn">Add</button>
+            </div>
+            <ul id="tasks-list" class="tasks-list"></ul>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  
+  <div id="toast" class="toast"></div>
+  
+  <script src="app.js"></script>
+</body>
+</html>

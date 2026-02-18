@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Productivity App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+      text-align: center;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #3f51b5;
+    }
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input, textarea, button {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #3f51b5;
+      color: white;
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #303f9f;
+    }
+    #status {
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 4px;
+      display: none;
+    }
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    #notesContainer, #todoListsContainer, #tasksContainer {
+      margin-top: 20px;
+    }
+    .note, .todo-list-item, .task-item {
+      background: white;
+      border-left: 4px solid #3f51b5;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+    }
+    .note h3, .todo-list-item h3 {
+      margin-top: 0;
+    }
+    .task-item {
+      display: flex;
+      align-items: center;
+    }
+    .task-checkbox {
+      margin-right: 10px;
+      width: auto;
+    }
+    .task-completed {
+      text-decoration: line-through;
+      color: #888;
+    }
+    .task-actions {
+      margin-left: auto;
+    }
+    .task-actions button {
+      padding: 3px 8px;
+      font-size: 12px;
+      width: auto;
+      margin-left: 5px;
+    }
+    .task-input {
+      display: flex;
+      gap: 10px;
+    }
+    .task-input input {
+      flex: 1;
+    }
+    .task-input button {
+      width: auto;
+    }
+    
+    /* Tab styles */
+    .tabs {
+      display: flex;
+      margin-bottom: 20px;
+    }
+    .tab-btn {
+      flex: 1;
+      background-color: #f0f0f0;
+      color: #333;
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+    .tab-btn.active {
+      background-color: white;
+      border-bottom: 2px solid #3f51b5;
+      font-weight: bold;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h1>Productivity App</h1>
+  
+  <div class="card" id="loginForm">
+    <h2>Login</h2>
+    <label for="username">Username</label>
+    <input type="text" id="username" placeholder="Enter your username">
+    <label for="password">Password</label>
+    <input type="password" id="password" placeholder="Enter your password">
+    <button id="loginBtn">Login</button>
+    <p>Don't have an account? <a href="#" id="showRegister">Register</a></p>
+  </div>
+  
+  <div class="card" id="registerForm" style="display: none;">
+    <h2>Register</h2>
+    <label for="regUsername">Username</label>
+    <input type="text" id="regUsername" placeholder="Choose a username">
+    <label for="regEmail">Email</label>
+    <input type="email" id="regEmail" placeholder="Enter your email">
+    <label for="regPassword">Password</label>
+    <input type="password" id="regPassword" placeholder="Choose a password">
+    <button id="registerBtn">Register</button>
+    <p>Already have an account? <a href="#" id="showLogin">Login</a></p>
+  </div>
+  
+  <div style="display: none;" id="loggedInView">
+    <!-- Tabs for switching between Notes and Todo Lists -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="notes-tab">Notes</button>
+      <button class="tab-btn" data-tab="todos-tab">To-Do Lists</button>
+    </div>
+
+    <!-- Notes Tab Content -->
+    <div id="notes-tab" class="tab-content active">
+      <div class="card">
+        <h2>Add a Note</h2>
+        <label for="noteTitle">Title</label>
+        <input type="text" id="noteTitle" placeholder="Enter note title">
+        <label for="noteContent">Content</label>
+        <textarea id="noteContent" rows="4" placeholder="Enter note content"></textarea>
+        <label for="noteTags">Tags (comma-separated)</label>
+        <input type="text" id="noteTags" placeholder="e.g. work, important, reminder">
+        <button id="addNoteBtn">Save Note</button>
+      </div>
+      
+      <div class="card">
+        <h2>Your Notes</h2>
+        <div id="notesContainer">
+          <!-- Notes will be added here dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Todo Lists Tab Content -->
+    <div id="todos-tab" class="tab-content">
+      <div class="card">
+        <h2>Create Todo List</h2>
+        <input type="hidden" id="todoListId">
+        <label for="todoListName">List Name</label>
+        <input type="text" id="todoListName" placeholder="Enter todo list name">
+        <label for="todoListDesc">Description (optional)</label>
+        <input type="text" id="todoListDesc" placeholder="Enter description">
+        <button id="saveTodoListBtn">Save Todo List</button>
+      </div>
+
+      <div class="card">
+        <h2>Your Todo Lists</h2>
+        <div id="todoListsContainer">
+          <!-- Todo lists will be displayed here -->
+        </div>
+      </div>
+
+      <div class="card" id="tasksCard" style="display:none;">
+        <h2>Tasks for: <span id="currentTodoListName"></span></h2>
+        <div class="task-input">
+          <input type="text" id="newTaskInput" placeholder="Enter new task...">
+          <button id="addTaskBtn">Add Task</button>
+        </div>
+        <div id="tasksContainer">
+          <!-- Tasks will be displayed here -->
+        </div>
+      </div>
+    </div>
+    
+    <button id="logoutBtn">Logout</button>
+  </div>
+  
+  <div id="status"></div>
+  
+  <script>
+    // API Configuration
+    const API_URL = 'http://localhost:8080';
+    
+    // DOM Elements
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const loggedInView = document.getElementById('loggedInView');
+    const showRegisterLink = document.getElementById('showRegister');
+    const showLoginLink = document.getElementById('showLogin');
+    const loginBtn = document.getElementById('loginBtn');
+    const registerBtn = document.getElementById('registerBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const addNoteBtn = document.getElementById('addNoteBtn');
+    const notesContainer = document.getElementById('notesContainer');
+    const status = document.getElementById('status');
+    
+    // Tab elements
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    // Todo list elements
+    const todoListsContainer = document.getElementById('todoListsContainer');
+    const saveTodoListBtn = document.getElementById('saveTodoListBtn');
+    const todoListId = document.getElementById('todoListId');
+    const todoListName = document.getElementById('todoListName');
+    const todoListDesc = document.getElementById('todoListDesc');
+    const tasksCard = document.getElementById('tasksCard');
+    const currentTodoListName = document.getElementById('currentTodoListName');
+    const tasksContainer = document.getElementById('tasksContainer');
+    const newTaskInput = document.getElementById('newTaskInput');
+    const addTaskBtn = document.getElementById('addTaskBtn');
+    
+    // Check if user is logged in
+    const token = localStorage.getItem('token');
+    if (token) {
+      showLoggedInView();
+      fetchNotes();
+      fetchTodoLists();
+    }
+    
+    // Event Listeners
+    showRegisterLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      loginForm.style.display = 'none';
+      registerForm.style.display = 'block';
+    });
+    
+    showLoginLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      registerForm.style.display = 'none';
+      loginForm.style.display = 'block';
+    });
+    
+    loginBtn.addEventListener('click', function() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      
+      if (!username || !password) {
+        showStatus('Please enter both username and password', true);
+        return;
+      }
+      
+      login(username, password);
+    });
+    
+    registerBtn.addEventListener('click', function() {
+      const username = document.getElementById('regUsername').value;
+      const email = document.getElementById('regEmail').value;
+      const password = document.getElementById('regPassword').value;
+      
+      if (!username || !email || !password) {
+        showStatus('Please fill in all fields', true);
+        return;
+      }
+      
+      register(username, email, password);
+    });
+    
+    logoutBtn.addEventListener('click', logout);
+    
+    addNoteBtn.addEventListener('click', function() {
+      const title = document.getElementById('noteTitle').value;
+      const content = document.getElementById('noteContent').value;
+      const tagsString = document.getElementById('noteTags').value;
+      
+      if (!title) {
+        showStatus('Note title is required', true);
+        return;
+      }
+      
+      const tags = tagsString ? tagsString.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+      
+      addNote(title, content, tags);
+    });
+    
+    // Tab switching
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        // Remove active class from all buttons and contents
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
+        
+        // Add active class to clicked button and corresponding content
+        button.classList.add('active');
+        document.getElementById(button.dataset.tab).classList.add('active');
+      });
+    });
+    
+    // Todo list events
+    saveTodoListBtn.addEventListener('click', function() {
+      const name = todoListName.value;
+      const description = todoListDesc.value;
+      
+      if (!name) {
+        showStatus('Todo list name is required', true);
+        return;
+      }
+      
+      saveTodoList(name, description);
+    });
+    
+    addTaskBtn.addEventListener('click', function() {
+      const taskTitle = newTaskInput.value;
+      const listId = todoListId.value;
+      
+      if (!taskTitle) {
+        showStatus('Task title is required', true);
+        return;
+      }
+      
+      if (!listId) {
+        showStatus('No todo list selected', true);
+        return;
+      }
+      
+      addTask(listId, taskTitle);
+    });
+    
+    newTaskInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        addTaskBtn.click();
+      }
+    });
+    
+    // Functions
+    async function login(username, password) {
+      try {
+        const response = await fetch(`${API_URL}/api/auth/signin`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ username, password })
+        });
+        
+        if (!response.ok) {
+          throw new Error('Login failed. Please check your credentials.');
+        }
+        
+        const data = await response.json();
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('username', data.username);
+        
+        showStatus('Login successful!');
+        showLoggedInView();
+        fetchNotes();
+      } catch (error) {
+        showStatus(error.message, true);
+      }
+    }
+    
+    async function register(username, email, password) {
+      try {
+        console.log('Attempting registration with:', { username, email });
+        
+        const payload = {
+          username,
+          email,
+          password,
+          firstName: document.getElementById('regUsername').value + '_first',
+          lastName: document.getElementById('regUsername').value + '_last'
+        };
+        
+        console.log('Registration payload:', payload);
+        
+        const response = await fetch(`${API_URL}/api/auth/signup`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+        
+        console.log('Registration response status:', response.status);
+        
+        const responseText = await response.text();
+        console.log('Registration response text:', responseText);
+        
+        if (!response.ok) {
+          throw new Error(`Registration failed: ${response.status} - ${responseText}`);
+        }
+        
+        showStatus('Registration successful! You can now login.');
+        registerForm.style.display = 'none';
+        loginForm.style.display = 'block';
+      } catch (error) {
+        console.error('Registration error:', error);
+        showStatus(error.message, true);
+      }
+    }
+    
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('username');
+      showLoginView();
+      showStatus('Logged out successfully');
+    }
+    
+    async function fetchNotes() {
+      try {
+        const response = await fetch(`${API_URL}/api/notes`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch notes');
+        }
+        
+        const data = await response.json();
+        displayNotes(data.content || []);
+      } catch (error) {
+        showStatus(error.message, true);
+      }
+    }
+    
+    async function addNote(title, content, tags) {
+      try {
+        const response = await fetch(`${API_URL}/api/notes`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            title,
+            content,
+            tags
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to add note');
+        }
+        
+        showStatus('Note added successfully');
+        document.getElementById('noteTitle').value = '';
+        document.getElementById('noteContent').value = '';
+        document.getElementById('noteTags').value = '';
+        fetchNotes();
+      } catch (error) {
+        showStatus(error.message, true);
+      }
+    }
+    
+    function displayNotes(notes) {
+      notesContainer.innerHTML = '';
+      
+      if (notes.length === 0) {
+        notesContainer.innerHTML = '<p>No notes yet. Create your first note!</p>';
+        return;
+      }
+      
+      notes.forEach(note => {
+        const noteElement = document.createElement('div');
+        noteElement.className = 'note';
+        
+        const tags = note.tags ? note.tags.map(tag => `<span style="background:#e0e0e0; padding:2px 6px; border-radius:4px; margin-right:5px; font-size:12px;">${tag.name}</span>`).join(' ') : '';
+        
+        noteElement.innerHTML = `
+          <h3>${note.title}</h3>
+          <p>${note.content || ''}</p>
+          <div>${tags}</div>
+          <small>Created: ${new Date(note.createdAt).toLocaleString()}</small>
+        `;
+        
+        notesContainer.appendChild(noteElement);
+      });
+    }
+    
+    function showLoginView() {
+      loginForm.style.display = 'block';
+      registerForm.style.display = 'none';
+      loggedInView.style.display = 'none';
+    }
+    
+    function showLoggedInView() {
+      loginForm.style.display = 'none';
+      registerForm.style.display = 'none';
+      loggedInView.style.display = 'block';
+      
+      const username = localStorage.getItem('username');
+      if (username) {
+        document.querySelector('h1').textContent = `Productivity App - Welcome, ${username}!`;
+      }
+    }
+    
+    async function fetchTodoLists() {
+      try {
+        const response = await fetch(`${API_URL}/api/todo-lists`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch todo lists');
+        }
+        
+        const data = await response.json();
+        displayTodoLists(data.content || []);
+      } catch (error) {
+        showStatus(error.message, true);
+      }
+    }
+    
+    function displayTodoLists(lists) {
+      todoListsContainer.innerHTML = '';
+      
+      if (lists.length === 0) {
+        todoListsContainer.innerHTML = '<p>No todo lists yet. Create your first list!</p>';
+        return;
+      }
+      
+      lists.forEach(list => {
+        const listElement = document.createElement('div');
+        listElement.className = 'todo-list-item';
+        listElement.dataset.id = list.id;
+        
+        listElement.innerHTML = `
+          <h3>${list.name}</h3>
+          <p>${list.description || ''}</p>
+          <button class="view-tasks-btn">View Tasks</button>
+        `;
+        
+        listElement.querySelector('.view-tasks-btn').addEventListener('click', () => {
+          viewTasks(list.id, list.name);
+        });
+        
+        todoListsContainer.appendChild(listElement);
+      });
+    }
+    
+    async function saveTodoList(name, description) {
+      try {
+        const listId = todoListId.value;
+        let url = `${API_URL}/api/todo-lists`;
+        let method = 'POST';
+        
+        if (listId) {
+          url = `${API_URL}/api/todo-lists/${listId}`;
+          method = 'PUT';
+        }
+        
+        const response = await fetch(url, {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            name,
+            description
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to save todo list');
+        }
+        
+        showStatus(`Todo list ${listId ? 'updated' : 'created'} successfully`);
+        todoListName.value = '';
+        todoListDesc.value = '';
+        todoListId.value = '';
+        
+        fetchTodoLists();
+      } catch (error) {
+        showStatus(error.message, true);
+      }
+    }
+    
+    async function viewTasks(listId, listName) {
+      todoListId.value = listId;
+      currentTodoListName.textContent = listName;
+      tasksCard.style.display = 'block';
+      
+      try {
+        const response = await fetch(`${API_URL}/api/todo-lists/${listId}/tasks`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch tasks');
+        }
+        
+        const data = await response.json();
+        displayTasks(data.content || []);
+      } catch (error) {
+        showStatus(error.message, true);
+      }
+    }
+    
+    function displayTasks(tasks) {
+      tasksContainer.innerHTML = '';
+      
+      if (tasks.length === 0) {
+        tasksContainer.innerHTML = '<p>No tasks yet. Add your first task!</p>';
+        return;
+      }
+      
+      tasks.forEach(task => {
+        const taskElement = document.createElement('div');
+        taskElement.className = 'task-item';
+        taskElement.dataset.id = task.id;
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'task-checkbox';
+        checkbox.checked = task.status === 'COMPLETED';
+        
+        const taskText = document.createElement('span');
+        taskText.textContent = task.title;
+        if (task.status === 'COMPLETED') {
+          taskText.classList.add('task-completed');
+        }
+        
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.className = 'task-delete-btn';
+        
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'task-actions';
+        actionsDiv.appendChild(deleteButton);
+        
+        taskElement.appendChild(checkbox);
+        taskElement.appendChild(taskText);
+        taskElement.appendChild(actionsDiv);
+        
+        // Add event listeners
+        checkbox.addEventListener('change', () => {
+          updateTaskStatus(task.id, checkbox.checked ? 'COMPLETED' : 'PENDING');
+          if (checkbox.checked) {
+            taskText.classList.add('task-completed');
+          } else {
+            taskText.classList.remove('task-completed');
+          }
+        });
+        
+        deleteButton.addEventListener('click', () => {
+          if (confirm('Are you sure you want to delete this task?')) {
+            deleteTask(task.id);
+          }
+        });
+        
+        tasksContainer.appendChild(taskElement);
+      });
+    }
+    
+    async function addTask(listId, title) {
+      try {
+        const response = await fetch(`${API_URL}/api/todo-lists/${listId}/tasks`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            title,
+            priority: 'MEDIUM'
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to add task');
+        }
+        
+        showStatus('Task added successfully');
+        newTaskInput.value = '';
+        
+        // Refresh tasks list
+        viewTasks(listId, currentTodoListName.textContent);
+      } catch (error) {
+        showStatus(error.message, true);
+      }
+    }
+    
+    async function updateTaskStatus(taskId, status) {
+      const listId = todoListId.value;
+      
+      try {
+        const response = await fetch(`${API_URL}/api/todo-lists/${listId}/tasks/${taskId}/status`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({ status })
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to update task status');
+        }
+      } catch (error) {
+        showStatus(error.message, true);
+        // Refresh tasks to show correct state
+        viewTasks(listId, currentTodoListName.textContent);
+      }
+    }
+    
+    async function deleteTask(taskId) {
+      const listId = todoListId.value;
+      
+      try {
+        const response = await fetch(`${API_URL}/api/todo-lists/${listId}/tasks/${taskId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to delete task');
+        }
+        
+        showStatus('Task deleted successfully');
+        
+        // Remove task from UI
+        document.querySelector(`.task-item[data-id="${taskId}"]`).remove();
+        
+        // Check if there are any tasks left
+        if (tasksContainer.children.length === 0) {
+          tasksContainer.innerHTML = '<p>No tasks yet. Add your first task!</p>';
+        }
+      } catch (error) {
+        showStatus(error.message, true);
+      }
+    }
+    
+    function showStatus(message, isError = false) {
+      status.textContent = message;
+      status.className = isError ? 'error' : 'success';
+      status.style.display = 'block';
+      
+      setTimeout(() => {
+        status.style.display = 'none';
+      }, 5000);
+    }
+  </script>
+</body>
+</html>
