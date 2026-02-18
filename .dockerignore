@@ -1,0 +1,37 @@
+# Git
+.git
+.gitignore
+.github/
+
+# Maven
+target/
+!target/*.jar
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# Compiled class file
+*.class
+
+# Logs
+logs/
+*.log
+
+# Package Files #
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Node modules (if any)
+node_modules/
+
+# Environment variables
+.env
+.env.*
